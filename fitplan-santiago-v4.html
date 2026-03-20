@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#080b12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Santiago">
+<title>Santiago — FitPlan</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080b12;--bg2:#0e1220;--bg3:#141828;--card:#181e2e;--card2:#1e2538;--accent:#e85d26;--accent2:#f97c47;--gold:#f5a623;--green:#20c969;--blue:#3d8ef8;--purple:#9b6dff;--text:#eef0f6;--text2:#8892a4;--text3:#3d4659;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);--radius:16px;--radius-sm:10px;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;}
+body{display:flex;flex-direction:column;}
+.bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.18;}
+.bg-orb.o1{width:400px;height:400px;background:#e85d26;top:-100px;right:-80px;}
+.bg-orb.o2{width:300px;height:300px;background:#3d8ef8;bottom:80px;left:-60px;}
+.bg-orb.o3{width:200px;height:200px;background:#9b6dff;top:40%;right:10%;}
+.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);background-size:40px 40px;}
+.bottom-nav{display:flex;background:rgba(14,18,32,0.95);border-top:1px solid var(--border2);padding:8px 0 max(10px,env(safe-area-inset-bottom));flex-shrink:0;z-index:100;backdrop-filter:blur(20px);}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;background:none;border:none;color:var(--text3);font-family:'Outfit',sans-serif;font-size:10px;font-weight:500;cursor:pointer;transition:color .2s;}
+.nav-btn.active{color:var(--accent);}
+.nav-btn svg{width:22px;height:22px;}
+.nav-dot{width:4px;height:4px;border-radius:50%;background:var(--accent);margin:0 auto;opacity:0;transition:opacity .2s;}
+.nav-btn.active .nav-dot{opacity:1;}
+.pages{flex:1;overflow:hidden;position:relative;z-index:1;}
+.page{position:absolute;inset:0;overflow-y:auto;display:none;padding:0 0 16px;-webkit-overflow-scrolling:touch;}
+.page.active{display:block;}
+/* HERO */
+.hero{position:relative;padding:52px 20px 24px;}
+.hero-bg{position:absolute;inset:0;background:linear-gradient(160deg,rgba(232,93,38,0.08) 0%,transparent 60%);}
+.hero-greeting{font-size:13px;color:var(--text2);letter-spacing:.05em;text-transform:uppercase;}
+.hero-name{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:2px;line-height:1;}
+.hero-name span{color:var(--accent);}
+.hero-sub{font-size:13px;color:var(--text2);margin-top:4px;}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:20px;}
+.hero-stat{background:var(--card);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px 10px;text-align:center;}
+.hero-stat-val{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);}
+.hero-stat-lbl{font-size:10px;color:var(--text2);margin-top:1px;}
+.section-title{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;padding:0 16px;}
+.week-strip{display:flex;gap:6px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;margin-bottom:6px;}
+.week-strip::-webkit-scrollbar{display:none;}
+.week-pill{flex-shrink:0;min-width:44px;border-radius:12px;padding:8px 6px;text-align:center;background:var(--card);border:1px solid var(--border);}
+.week-pill.today-pill{border-color:var(--accent2);}
+.week-pill .wday{font-size:10px;font-weight:600;color:var(--text2);}
+.week-pill .wtype{font-size:14px;margin-top:2px;}
+.today-card{background:var(--card);border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden;margin:0 16px 6px;}
+.today-card-header{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;}
+.today-card-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;}
+.today-items{padding:0 16px 14px;}
+.today-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--border);}
+.today-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.today-time{font-size:11px;color:var(--text2);min-width:68px;}
+.today-label{font-size:13px;font-weight:500;}
+.today-sub{font-size:11px;color:var(--text2);}
+/* TABS */
+.tab-row{display:flex;gap:6px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;margin-bottom:12px;}
+.tab-row::-webkit-scrollbar{display:none;}
+.tab-pill{flex-shrink:0;padding:7px 16px;border-radius:20px;border:1px solid var(--border2);font-size:12px;font-weight:500;cursor:pointer;background:var(--card);color:var(--text2);white-space:nowrap;transition:all .15s;}
+.tab-pill.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+/* BADGES */
+.badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;}
+.b-lift{background:rgba(61,142,248,0.15);color:var(--blue);}
+.b-cardio{background:rgba(32,201,105,0.15);color:var(--green);}
+.b-rest{background:rgba(61,70,89,0.2);color:var(--text3);}
+.b-class{background:rgba(155,109,255,0.15);color:var(--purple);}
+.b-work{background:rgba(232,93,38,0.15);color:var(--accent2);}
+.b-workout{background:rgba(61,142,248,0.15);color:var(--blue);}
+.b-event{background:rgba(245,166,35,0.15);color:var(--gold);}
+.b-study{background:rgba(32,201,105,0.15);color:var(--green);}
+/* WORKOUT */
+.ex-card{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);margin:0 16px 8px;overflow:hidden;}
+.ex-header{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.ex-name{font-size:14px;font-weight:600;}
+.ex-meta{font-size:11px;color:var(--text2);margin-top:2px;}
+.ex-body{display:none;padding:0 14px 12px;}
+.ex-body.open{display:block;}
+.set-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--border);}
+.set-num{font-size:11px;color:var(--text3);min-width:36px;}
+.set-input{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:6px 8px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;width:62px;text-align:center;}
+.set-input:focus{outline:none;border-color:var(--accent);}
+.set-lbl{font-size:11px;color:var(--text2);}
+.set-check{width:26px;height:26px;border-radius:7px;border:2px solid var(--border2);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-left:auto;font-size:13px;transition:all .15s;flex-shrink:0;}
+.set-check.done{background:var(--green);border-color:var(--green);}
+.tip-box{background:rgba(232,93,38,0.07);border:1px solid rgba(232,93,38,0.2);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--accent2);margin:8px 16px 0;line-height:1.6;}
+.how-to{background:rgba(61,142,248,0.07);border:1px solid rgba(61,142,248,0.2);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:#7ab3fc;margin-top:8px;line-height:1.6;}
+.chevron{color:var(--text3);font-size:16px;transition:transform .2s;}
+.chevron.open{transform:rotate(180deg);}
+/* MEALS / RECIPES */
+.macro-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 16px 16px;}
+.mc{background:var(--card);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px 8px;text-align:center;}
+.mc-val{font-family:'Bebas Neue',sans-serif;font-size:22px;}
+.mc-lbl{font-size:10px;color:var(--text2);margin-top:1px;}
+.recipe-card{background:var(--card);border:1px solid var(--border2);border-radius:var(--radius);margin:0 16px 10px;overflow:hidden;}
+.recipe-header{padding:14px 16px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;}
+.recipe-info{flex:1;}
+.recipe-name{font-size:15px;font-weight:600;line-height:1.3;}
+.recipe-sub{font-size:12px;color:var(--text2);margin-top:3px;line-height:1.4;}
+.recipe-tags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center;}
+.recipe-tag{font-size:11px;padding:3px 9px;border-radius:20px;background:var(--bg3);color:var(--text2);}
+.cuisine-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;}
+.c-kr{background:rgba(61,142,248,0.15);color:var(--blue);}
+.c-cn{background:rgba(239,68,68,0.15);color:#f87171;}
+.c-jp{background:rgba(155,109,255,0.15);color:var(--purple);}
+.c-base{background:rgba(32,201,105,0.15);color:var(--green);}
+.c-custom{background:rgba(245,166,35,0.15);color:var(--gold);}
+.star-btn{background:none;border:none;font-size:22px;cursor:pointer;padding:0;line-height:1;flex-shrink:0;transition:transform .15s;}
+.star-btn:active{transform:scale(1.3);}
+.recipe-body{display:none;padding:0 16px 16px;border-top:1px solid var(--border);}
+.recipe-body.open{display:block;}
+.r-section{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin:14px 0 8px;}
+.ing-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);color:var(--text);}
+.ing-row:last-child{border-bottom:none;}
+.ing-amt{color:var(--text2);font-size:12px;flex-shrink:0;margin-left:8px;}
+.step-row{display:flex;gap:10px;font-size:13px;line-height:1.6;margin-bottom:10px;color:var(--text);}
+.step-num{width:24px;height:24px;border-radius:50%;background:rgba(232,93,38,0.15);color:var(--accent2);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.delete-recipe-btn{width:100%;margin-top:12px;padding:10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:var(--radius-sm);color:#f87171;font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;}
+/* SCHEDULE */
+.event-item{background:var(--card);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px 14px;margin:0 16px 8px;display:flex;align-items:flex-start;gap:12px;}
+.event-left{display:flex;flex-direction:column;align-items:center;min-width:48px;}
+.event-time{font-size:11px;font-weight:600;color:var(--text2);text-align:center;}
+.event-bar{width:3px;flex:1;min-height:20px;border-radius:2px;margin-top:4px;}
+.event-content{flex:1;}
+.event-title{font-size:14px;font-weight:600;margin-bottom:2px;}
+.event-sub{font-size:12px;color:var(--text2);}
+.event-delete{background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:0 2px;flex-shrink:0;}
+/* PROGRESS */
+.prog-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 16px 16px;}
+.prog-card{background:var(--card);border:1px solid var(--border2);border-radius:var(--radius);padding:14px;}
+.prog-val{font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--accent);}
+.prog-lbl{font-size:12px;color:var(--text2);margin-top:2px;}
+.prog-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:8px 12px;color:var(--text);font-family:'Outfit',sans-serif;font-size:15px;margin-top:8px;}
+.prog-input:focus{outline:none;border-color:var(--accent);}
+.log-btn{width:calc(100% - 32px);margin:0 16px 16px;padding:14px;background:var(--accent);border:none;border-radius:var(--radius);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;cursor:pointer;}
+.log-item{background:var(--card);border-radius:var(--radius-sm);padding:12px 14px;margin:0 16px 8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.log-date{font-size:11px;color:var(--text2);}
+.log-vals{font-size:14px;font-weight:600;}
+.log-del{background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;}
+.ms-item{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:var(--radius-sm);padding:12px 14px;margin:0 16px 8px;border:1px solid var(--border);}
+.ms-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.ms-text{font-size:13px;font-weight:500;}
+.ms-sub{font-size:11px;color:var(--text2);}
+.install-box{background:linear-gradient(135deg,rgba(232,93,38,0.12),rgba(245,166,35,0.06));border:1px solid rgba(232,93,38,0.25);border-radius:var(--radius);padding:16px;margin:0 16px 16px;}
+.install-box h3{font-size:14px;font-weight:600;color:var(--accent2);margin-bottom:6px;}
+.install-box p{font-size:12px;color:var(--text2);line-height:1.6;}
+.empty-state{text-align:center;padding:30px 20px;color:var(--text3);font-size:13px;}
+/* FAB */
+.fab{position:fixed;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 64px);right:20px;width:52px;height:52px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:26px;cursor:pointer;z-index:150;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(232,93,38,0.4);transition:transform .15s;}
+.fab:active{transform:scale(0.93);}
+.fab.hidden{display:none;}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:flex;align-items:flex-end;backdrop-filter:blur(4px);}
+.modal-overlay.hidden{display:none;}
+.modal{background:var(--bg2);border-radius:24px 24px 0 0;border:1px solid var(--border2);border-bottom:none;padding:24px 20px max(24px,env(safe-area-inset-bottom));width:100%;max-height:90vh;overflow-y:auto;}
+.modal h2{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:16px;}
+.form-group{margin-bottom:14px;}
+.form-label{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;display:block;letter-spacing:.04em;text-transform:uppercase;}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:11px 14px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;}
+.form-input:focus{outline:none;border-color:var(--accent);}
+.form-textarea{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:11px 14px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;min-height:80px;resize:vertical;line-height:1.5;}
+.form-textarea:focus{outline:none;border-color:var(--accent);}
+select.form-input option{background:var(--bg3);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.type-btns{display:flex;gap:6px;flex-wrap:wrap;}
+.type-btn{padding:7px 14px;border-radius:20px;border:1px solid var(--border2);font-size:12px;font-weight:500;cursor:pointer;background:var(--card);color:var(--text2);font-family:'Outfit',sans-serif;}
+.type-btn.sel{border-color:var(--accent);color:var(--accent);background:rgba(232,93,38,0.1);}
+.modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px;}
+.btn-cancel{padding:13px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;cursor:pointer;}
+.btn-save{padding:13px;background:var(--accent);border:none;border-radius:var(--radius-sm);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;cursor:pointer;}
+.dyn-row{display:flex;gap:6px;margin-bottom:6px;align-items:center;}
+.dyn-row .form-input{flex:1;}
+.dyn-row .form-input.sm{width:80px;flex:none;}
+.add-row-btn{background:none;border:1px solid var(--border2);border-radius:var(--radius-sm);padding:6px 12px;color:var(--text2);font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;margin-top:4px;}
+.remove-row-btn{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:0 4px;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="bg-canvas">
+  <div class="bg-orb o1"></div><div class="bg-orb o2"></div><div class="bg-orb o3"></div>
+  <div class="bg-grid"></div>
+</div>
+<div class="pages">
+
+  <!-- HOME -->
+  <div class="page active" id="page-home">
+    <div class="hero">
+      <div class="hero-bg"></div>
+      <div class="hero-greeting">Welcome back,</div>
+      <div class="hero-name">SANTI<span>AGO</span></div>
+      <div class="hero-sub" id="home-date"></div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="hero-stat-val" id="hs-weight">194</div><div class="hero-stat-lbl">lbs</div></div>
+        <div class="hero-stat"><div class="hero-stat-val" id="hs-logged">0</div><div class="hero-stat-lbl">days logged</div></div>
+        <div class="hero-stat"><div class="hero-stat-val" id="hs-change">—</div><div class="hero-stat-lbl">lbs change</div></div>
+      </div>
+    </div>
+    <div class="section-title">This week</div>
+    <div class="week-strip" id="home-week-strip"></div>
+    <div class="section-title" style="margin-top:14px">Today</div>
+    <div class="today-card">
+      <div class="today-card-header">
+        <div><div class="today-card-title" id="today-title">—</div><div style="font-size:12px;color:var(--text2)" id="today-day-label">—</div></div>
+        <span class="badge" id="today-badge"></span>
+      </div>
+      <div class="today-items" id="today-items"></div>
+    </div>
+  </div>
+
+  <!-- SCHEDULE -->
+  <div class="page" id="page-schedule">
+    <div style="padding:52px 0 0">
+      <div style="padding:0 16px;margin-bottom:16px">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px">My Schedule</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:2px">Classes, workouts & events</div>
+      </div>
+      <div class="tab-row" id="sched-tabs"></div>
+      <div id="sched-content"></div>
+    </div>
+  </div>
+
+  <!-- WORKOUT -->
+  <div class="page" id="page-workout">
+    <div style="padding:52px 0 0">
+      <div style="padding:0 16px;margin-bottom:4px">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px">Workout Plan</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:2px">Calisthenics · Dumbbells · Machines</div>
+      </div>
+      <div style="padding:0 16px;margin-bottom:12px">
+        <div style="background:rgba(32,201,105,0.08);border:1px solid rgba(32,201,105,0.2);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--green);line-height:1.6">
+          ✅ No deadlifts or hip thrusts. All exercises use bodyweight, dumbbells, or gym machines. Tap any exercise for how-to instructions.
+        </div>
+      </div>
+      <div class="tab-row" id="workout-tabs"></div>
+      <div id="workout-content" style="padding:0 0 16px"></div>
+    </div>
+  </div>
+
+  <!-- MEALS -->
+  <div class="page" id="page-meal">
+    <div style="padding:52px 0 0">
+      <div style="padding:0 16px;margin-bottom:10px">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px">Recipes</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:2px">Korean · Chinese · Japanese · Dairy-free</div>
+      </div>
+      <div class="macro-strip">
+        <div class="mc"><div class="mc-val" style="color:var(--accent)">2,200</div><div class="mc-lbl">kcal/day</div></div>
+        <div class="mc"><div class="mc-val" style="color:var(--green)">180g</div><div class="mc-lbl">protein</div></div>
+        <div class="mc"><div class="mc-val" style="color:var(--blue)">220g</div><div class="mc-lbl">carbs</div></div>
+        <div class="mc"><div class="mc-val" style="color:var(--purple)">65g</div><div class="mc-lbl">fats</div></div>
+      </div>
+      <div class="tab-row" id="meal-filter-tabs"></div>
+      <div id="recipe-list"></div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="page" id="page-progress">
+    <div style="padding:52px 0 0">
+      <div style="padding:0 16px;margin-bottom:16px">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px">Progress</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:2px">Track your transformation</div>
+      </div>
+      <div class="install-box"><h3>Add to Home Screen</h3><p>Chrome menu (⋮) → "Add to Home Screen" → install as an app. Works offline, saves all data.</p></div>
+      <div class="section-title">Log today</div>
+      <div class="prog-grid">
+        <div class="prog-card"><div class="prog-lbl">Weight (lbs)</div><input class="prog-input" id="inp-weight" type="number" placeholder="194" step="0.1"></div>
+        <div class="prog-card"><div class="prog-lbl">Waist (in)</div><input class="prog-input" id="inp-waist" type="number" placeholder="0" step="0.1"></div>
+      </div>
+      <button class="log-btn" onclick="logEntry()">LOG TODAY</button>
+      <div class="section-title">Stats</div>
+      <div class="prog-grid">
+        <div class="prog-card"><div class="prog-val">194</div><div class="prog-lbl">Starting weight</div></div>
+        <div class="prog-card"><div class="prog-val" id="stat-cur">—</div><div class="prog-lbl">Current weight</div></div>
+        <div class="prog-card"><div class="prog-val" id="stat-chg">—</div><div class="prog-lbl">Change (lbs)</div></div>
+        <div class="prog-card"><div class="prog-val" id="stat-cnt">0</div><div class="prog-lbl">Days logged</div></div>
+      </div>
+      <div class="section-title">History</div>
+      <div id="log-list"></div>
+      <div class="section-title" style="margin-top:8px">3-month milestones</div>
+      <div class="ms-item"><div class="ms-dot" style="background:var(--blue)"></div><div><div class="ms-text">Weeks 1–2: Build the habit</div><div class="ms-sub">Learn movements, stay consistent</div></div></div>
+      <div class="ms-item"><div class="ms-dot" style="background:var(--green)"></div><div><div class="ms-text">Weeks 3–4: Strength base</div><div class="ms-sub">More reps, body adapting fast</div></div></div>
+      <div class="ms-item"><div class="ms-dot" style="background:var(--accent)"></div><div><div class="ms-text">Month 2: Progressive overload</div><div class="ms-sub">Increase weight or reps weekly</div></div></div>
+      <div class="ms-item"><div class="ms-dot" style="background:var(--purple)"></div><div><div class="ms-text">Month 3: Real results</div><div class="ms-sub">Leaner midsection, visibly stronger</div></div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FAB — changes based on active page -->
+<button class="fab hidden" id="fab" onclick="fabAction()">+</button>
+
+<!-- EVENT MODAL -->
+<div class="modal-overlay hidden" id="modal-event" onclick="closeModalOutside(event,'modal-event')">
+  <div class="modal">
+    <h2>Add Event</h2>
+    <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="ev-title" type="text" placeholder="e.g. Study session, Doctor appt..."></div>
+    <div class="form-group"><label class="form-label">Day</label><select class="form-input" id="ev-day"><option>Mon</option><option>Tue</option><option>Wed</option><option>Thu</option><option>Fri</option><option>Sat</option><option>Sun</option></select></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Start</label><input class="form-input" id="ev-start" type="time" value="12:00"></div>
+      <div class="form-group"><label class="form-label">End</label><input class="form-input" id="ev-end" type="time" value="13:00"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Type</label>
+      <div class="type-btns" id="ev-type-btns">
+        <button class="type-btn sel" onclick="selType(this,'event','ev-type-btns')">Event</button>
+        <button class="type-btn" onclick="selType(this,'study','ev-type-btns')">Study</button>
+        <button class="type-btn" onclick="selType(this,'class','ev-type-btns')">Class</button>
+        <button class="type-btn" onclick="selType(this,'reminder','ev-type-btns')">Reminder</button>
+        <button class="type-btn" onclick="selType(this,'personal','ev-type-btns')">Personal</button>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('modal-event')">Cancel</button>
+      <button class="btn-save" onclick="saveEvent()">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT EVENT MODAL -->
+<div class="modal-overlay hidden" id="modal-edit-event" onclick="closeModalOutside(event,'modal-edit-event')">
+  <div class="modal">
+    <h2>Edit Event</h2>
+    <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="edit-ev-title" type="text"></div>
+    <div class="form-group"><label class="form-label">Day</label><select class="form-input" id="edit-ev-day"><option>Mon</option><option>Tue</option><option>Wed</option><option>Thu</option><option>Fri</option><option>Sat</option><option>Sun</option></select></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Start</label><input class="form-input" id="edit-ev-start" type="time"></div>
+      <div class="form-group"><label class="form-label">End</label><input class="form-input" id="edit-ev-end" type="time"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Type</label>
+      <div class="type-btns" id="edit-ev-type-btns">
+        <button class="type-btn" onclick="selEditType(this,'event')">Event</button>
+        <button class="type-btn" onclick="selEditType(this,'study')">Study</button>
+        <button class="type-btn" onclick="selEditType(this,'class')">Class</button>
+        <button class="type-btn" onclick="selEditType(this,'reminder')">Reminder</button>
+        <button class="type-btn" onclick="selEditType(this,'personal')">Personal</button>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('modal-edit-event')">Cancel</button>
+      <button class="btn-save" onclick="saveEditEvent()">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECIPE MODAL -->
+<div class="modal-overlay hidden" id="modal-recipe" onclick="closeModalOutside(event,'modal-recipe')">
+  <div class="modal">
+    <h2>Add Recipe</h2>
+    <div class="form-group"><label class="form-label">Recipe name</label><input class="form-input" id="rc-name" type="text" placeholder="e.g. Spicy Tofu Ramen"></div>
+    <div class="form-group"><label class="form-label">Description (optional)</label><input class="form-input" id="rc-sub" type="text" placeholder="e.g. Quick weeknight bowl"></div>
+    <div class="form-group">
+      <label class="form-label">Cuisine</label>
+      <div class="type-btns" id="rc-cuisine-btns">
+        <button class="type-btn sel" onclick="selType(this,'kr','rc-cuisine-btns')">Korean</button>
+        <button class="type-btn" onclick="selType(this,'cn','rc-cuisine-btns')">Chinese</button>
+        <button class="type-btn" onclick="selType(this,'jp','rc-cuisine-btns')">Japanese</button>
+        <button class="type-btn" onclick="selType(this,'custom','rc-cuisine-btns')">Other</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Meal type</label>
+      <div class="type-btns" id="rc-meal-btns">
+        <button class="type-btn sel" onclick="selType(this,'breakfast','rc-meal-btns')">Breakfast</button>
+        <button class="type-btn" onclick="selType(this,'lunch','rc-meal-btns')">Lunch</button>
+        <button class="type-btn" onclick="selType(this,'dinner','rc-meal-btns')">Dinner</button>
+        <button class="type-btn" onclick="selType(this,'snack','rc-meal-btns')">Snack</button>
+      </div>
+    </div>
+    <div class="form-row-3">
+      <div class="form-group"><label class="form-label">kcal</label><input class="form-input" id="rc-kcal" type="number" placeholder="500"></div>
+      <div class="form-group"><label class="form-label">Protein (g)</label><input class="form-input" id="rc-prot" type="number" placeholder="40"></div>
+      <div class="form-group"><label class="form-label">Cook time</label><input class="form-input" id="rc-time" type="number" placeholder="20"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ingredients</label>
+      <div id="rc-ings"></div>
+      <button class="add-row-btn" onclick="addIngRow()">+ Add ingredient</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Steps</label>
+      <div id="rc-steps"></div>
+      <button class="add-row-btn" onclick="addStepRow()">+ Add step</button>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('modal-recipe')">Cancel</button>
+      <button class="btn-save" onclick="saveRecipe()">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="switchPage('home',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home<div class="nav-dot"></div></button>
+  <button class="nav-btn" onclick="switchPage('schedule',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Schedule<div class="nav-dot"></div></button>
+  <button class="nav-btn" onclick="switchPage('workout',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4v16M18 4v16M6 12h12M3 8l3-4M21 8l-3-4M3 16l3 4M21 16l-3 4"/></svg>Workout<div class="nav-dot"></div></button>
+  <button class="nav-btn" onclick="switchPage('meal',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2M7 2v20M21 15V2a5 5 0 00-5 5v6h3.5M16 22v-7"/></svg>Meals<div class="nav-dot"></div></button>
+  <button class="nav-btn" onclick="switchPage('progress',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Progress<div class="nav-dot"></div></button>
+</nav>
+
+<script>
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const TYPE_COLORS={lift:'var(--blue)',cardio:'var(--green)',rest:'var(--text3)',class:'var(--purple)',event:'var(--gold)',study:'var(--green)',work:'var(--accent)',reminder:'var(--gold)',personal:'var(--blue)',workout:'var(--blue)'};
+const CUISINE_LABELS={kr:'Korean',cn:'Chinese',jp:'Japanese',base:'Staple',custom:'Custom'};
+
+const defaultBaseSchedule={
+  Mon:[{time:'Morning',label:'Workout — Lower body',type:'workout',sub:'Squats, lunges, machines'},{time:'Evening',label:'Free time',type:'rest',sub:''}],
+  Tue:[{time:'Morning',label:'Workout — Cardio + Core',type:'workout',sub:'Treadmill, bike, abs'},{time:'2:00–3:15pm',label:'University Class',type:'class',sub:'NIU'}],
+  Wed:[{time:'4:30–6:00am',label:'Workout — Upper body',type:'workout',sub:'Post-shift gym'},{time:'6:00am+',label:'Sleep & recover',type:'rest',sub:''},{time:'6:00pm–4:30am',label:'Work shift',type:'work',sub:'Amazon RFD1'}],
+  Thu:[{time:'All day',label:'Full rest day',type:'rest',sub:'Recovery'},{time:'2:00–3:15pm',label:'University Class',type:'class',sub:'NIU'}],
+  Fri:[{time:'4:30–6:00am',label:'Workout — Full body',type:'workout',sub:'Post-shift gym'},{time:'6:00am+',label:'Sleep & recover',type:'rest',sub:''},{time:'6:00pm–4:30am',label:'Work shift',type:'work',sub:'Amazon RFD1'}],
+  Sat:[{time:'4:30–6:00am',label:'Workout — Cardio + Core',type:'workout',sub:'Post-shift gym'},{time:'6:00am+',label:'Sleep & recover',type:'rest',sub:''},{time:'6:00pm–4:30am',label:'Work shift',type:'work',sub:'Amazon RFD1'}],
+  Sun:[{time:'4:30–6:00am',label:'Workout — Upper body A',type:'workout',sub:'Post-Sat shift gym'},{time:'6:00am–3pm+',label:'Sleep in',type:'rest',sub:'Wake up after 3pm'},{time:'Afternoon',label:'Free day',type:'rest',sub:'Meal prep day'}],
+};
+let baseSchedule=JSON.parse(localStorage.getItem('sg-basesched')||'null')||JSON.parse(JSON.stringify(defaultBaseSchedule));
+function saveBaseSchedule(){localStorage.setItem('sg-basesched',JSON.stringify(baseSchedule));}
+
+const workouts=[
+  {day:'Mon',title:'Lower body',type:'lift',tip:'Control every rep. Slow on the way down — that\'s where muscle is built.',exercises:[
+    {name:'Bodyweight Squat',sets:3,reps:'15',note:'Great warm-up, no weight needed',howto:'Feet shoulder-width. Push knees out, sit hips back and down, chest up. Stand back up squeezing glutes.'},
+    {name:'Dumbbell Goblet Squat',sets:3,reps:'12',note:'Hold one dumbbell at chest',howto:'Hold a dumbbell vertically at chest. Squat down between your elbows. Much easier form than barbell squats.'},
+    {name:'Dumbbell Reverse Lunge',sets:3,reps:'10 each leg',note:'Step back — easier on knees than forward lunge',howto:'Hold dumbbells at sides. Step one foot back, lower back knee toward floor. Push through front heel to stand.'},
+    {name:'Leg Press Machine',sets:3,reps:'12',note:'Feet shoulder-width on platform',howto:'Sit in machine, feet flat on platform. Lower weight until knees at 90°, push back up. Don\'t lock knees at top.'},
+    {name:'Seated Leg Extension',sets:3,reps:'12',note:'Straighten legs fully, lower slowly',howto:'Sit with pad on top of ankles. Extend legs fully then lower slowly. Isolates your quads.'},
+    {name:'Standing Calf Raise',sets:3,reps:'15',note:'Rise up high, lower slow',howto:'Stand on edge of a step. Rise onto toes as high as possible, hold 1 sec, lower slowly.'},
+  ]},
+  {day:'Tue',title:'Cardio + Core',type:'cardio',tip:'Cardio burns fat. Core work targets the belly directly. Don\'t skip the ab section.',exercises:[
+    {name:'Treadmill or Bike',sets:1,reps:'25–30 min',note:'Moderate pace — you can hold a conversation',howto:'Treadmill 3.5–4mph or bike at moderate resistance. Zone 2 cardio — best for fat burning without hurting recovery.'},
+    {name:'Plank',sets:3,reps:'30–45 sec',note:'Elbows under shoulders, body flat',howto:'Forearms on floor. Squeeze abs, glutes, thighs tight. Don\'t let hips sag or rise. Breathe normally.'},
+    {name:'Dead Bug',sets:3,reps:'8 each side',note:'Lower back stays flat on floor',howto:'Lie on back, arms up, knees at 90°. Lower opposite arm and leg slowly. Lower back must NOT lift.'},
+    {name:'Bicycle Crunch',sets:3,reps:'15 each side',note:'Slow and controlled — no neck yanking',howto:'Hands behind head. Bring right elbow to left knee while extending right leg. Rotate slowly.'},
+    {name:'Leg Raise',sets:3,reps:'12',note:'Lower legs slowly — don\'t crash them down',howto:'Lie flat, hands under lower back. Raise legs to 90°, lower slowly until just above floor. Squeeze abs.'},
+    {name:'Mountain Climbers',sets:3,reps:'20 total',note:'High plank, drive knees in alternating',howto:'Push-up position. Drive one knee toward chest then quickly switch. Keep hips level.'},
+  ]},
+  {day:'Wed',title:'Upper body',type:'lift',tip:'Post-shift — eat a banana or shake before. Rest 60–90 sec between sets.',exercises:[
+    {name:'Push-Up',sets:4,reps:'10–15',note:'Knees down if needed — build up',howto:'Hands slightly wider than shoulders. Lower chest to floor, elbows at 45°. Modify: do on your knees.'},
+    {name:'Incline Push-Up',sets:3,reps:'12',note:'Hands on bench — targets upper chest',howto:'Hands on bench, feet on floor. Do a push-up. Higher hands = easier. Good chest builder.'},
+    {name:'Dumbbell Row (single arm)',sets:3,reps:'10 each',note:'Knee and hand on bench for support',howto:'One knee/hand on bench. Pull dumbbell straight back past your hip like starting a lawnmower. Lower slowly.'},
+    {name:'Dumbbell Shoulder Press',sets:3,reps:'10',note:'Seated or standing. Core tight.',howto:'Hold dumbbells at shoulder height. Press up until arms nearly straight. Lower back to shoulders slowly.'},
+    {name:'Lat Pulldown Machine',sets:3,reps:'12',note:'Pull to chest, not behind neck',howto:'Wide overhand grip. Pull bar to upper chest leaning slightly back. Squeeze shoulder blades at bottom.'},
+    {name:'Dumbbell Bicep Curl',sets:2,reps:'12',note:'3-second lower. Elbows stay at sides.',howto:'Palms up. Curl up, squeeze at top, lower for 3 seconds. Don\'t swing body — keep strict form.'},
+  ]},
+  {day:'Thu',title:'Rest Day',type:'rest',tip:'Full rest. If restless, a 20-min walk is perfect — aids fat loss and recovery without stress on muscles.',exercises:[]},
+  {day:'Fri',title:'Full body',type:'lift',tip:'Full body day hits everything. Great for burning calories on a work night.',exercises:[
+    {name:'Jump Squat (or regular if tired)',sets:3,reps:'10',note:'Land softly. Skip jump if legs are sore.',howto:'Squat down then explode into a jump, land softly with bent knees. If fatigued post-shift, do regular squats.'},
+    {name:'Push-Up',sets:3,reps:'12',note:'Control every rep',howto:'Chest to floor, elbows at 45°. Push back up strong.'},
+    {name:'Dumbbell Row (single arm)',sets:3,reps:'10 each',note:'Pull elbow back past your hip',howto:'One knee/hand on bench. Pull dumbbell up like starting a lawnmower. Repeat other side.'},
+    {name:'Dumbbell Lateral Raise',sets:3,reps:'15',note:'Light weight. Arms slightly bent.',howto:'Hold light dumbbells. Raise both arms out to shoulder height. Lower slowly. Shoulders stay down.'},
+    {name:'Plank',sets:3,reps:'40 sec',note:'Hold steady. Breathe.',howto:'Forearms on floor. Squeeze everything. Don\'t let hips drop.'},
+    {name:'Cable Crunch or Crunch Machine',sets:3,reps:'15',note:'Great for targeting belly',howto:'Pull handles to knees by crunching abs — not bending at hips. Squeeze abs at bottom.'},
+  ]},
+  {day:'Sat',title:'Cardio + Core',type:'cardio',tip:'Post-shift cardio. Keep it moderate — body is tired. Consistent cardio is what melts the belly fat.',exercises:[
+    {name:'Treadmill Incline Walk',sets:1,reps:'20–25 min',note:'Incline 5%, speed 3–3.5mph',howto:'Incline walking burns more than flat jogging with zero joint stress. Great for post-shift.'},
+    {name:'Stationary Bike',sets:1,reps:'15 min',note:'Optional. Light resistance.',howto:'Easy pedaling after treadmill. Keeps blood moving, burns extra calories without hammering legs.'},
+    {name:'Plank',sets:3,reps:'30–45 sec',note:'Core work after cardio',howto:'Hold strong plank. Extend to 60 sec when 45 feels easy.'},
+    {name:'Russian Twist',sets:3,reps:'20 total',note:'Sit on floor, lean back 45°, rotate side to side',howto:'Knees bent, lean back, rotate torso side to side touching floor each time. Add light dumbbell when easy.'},
+    {name:'Flutter Kick',sets:3,reps:'20 sec',note:'Lying flat. Small quick kicks.',howto:'Lie on back, hands under glutes. Raise legs 6 inches and kick up and down quickly. Lower back pressed to floor.'},
+  ]},
+  {day:'Sun',title:'Upper body A',type:'lift',tip:'Start of your training week. Fuel up — you just came off a long shift.',exercises:[
+    {name:'Push-Up',sets:4,reps:'12–15',note:'Warm up with bodyweight first',howto:'Try to beat last week\'s reps. Hands slightly wider than shoulders, elbows at 45°.'},
+    {name:'Dumbbell Chest Press',sets:3,reps:'10',note:'Flat bench. Press from chest.',howto:'Lie on bench, hold dumbbells at chest, press up until extended. Lower back slowly to chest.'},
+    {name:'Dumbbell Row (single arm)',sets:3,reps:'10 each',note:'Full stretch at bottom of each rep',howto:'Let dumbbell stretch at full hang at bottom — that\'s where the back works hardest.'},
+    {name:'Lat Pulldown Machine',sets:3,reps:'12',note:'Wide grip. Pull to upper chest.',howto:'Overhand wide grip. Pull bar to upper chest, squeeze shoulder blades. Builds the V-shape back.'},
+    {name:'Dumbbell Shoulder Press',sets:3,reps:'10',note:'Seated for stability',howto:'Sit upright, press dumbbells from shoulder height overhead. Core tight. Lower slowly.'},
+    {name:'Tricep Pushdown (cable)',sets:2,reps:'12',note:'Elbows tucked at sides',howto:'Stand at cable machine. Tuck elbows to sides, push handle straight down until fully extended. Release slowly.'},
+  ]},
+];
+
+// ---- BUILT-IN RECIPES ----
+const builtInRecipes=[
+  {id:'r1',cuisine:'base',mealType:'breakfast',name:'Fried Egg & White Rice Bowl',sub:'Your go-to morning — simple, filling, high protein',time:10,kcal:480,p:28,c:52,f:14,
+   ingredients:[{n:'White rice (cooked)',a:'1 cup'},{n:'Eggs',a:'3 large'},{n:'Soy sauce',a:'1 tbsp'},{n:'Sesame oil',a:'1 tsp'},{n:'Green onion',a:'2 stalks'},{n:'Neutral oil',a:'1 tsp'}],
+   steps:['Cook rice the night before or use leftover rice.','Heat oil in pan over medium. Crack eggs and fry sunny-side up or over-easy.','Scoop warm rice into bowl. Drizzle soy sauce and sesame oil over rice.','Place fried eggs on top. Scatter sliced green onion.','Optional: dash of chili flakes or sriracha.'],custom:false},
+  {id:'r2',cuisine:'jp',mealType:'breakfast',name:'Tamago Gohan (TKG)',sub:"Japan's most comforting breakfast. 5 minutes.",time:5,kcal:420,p:24,c:52,f:10,
+   ingredients:[{n:'White rice (hot, fresh)',a:'1 cup'},{n:'Eggs',a:'2 large'},{n:'Soy sauce',a:'1 tbsp'},{n:'Sesame oil',a:'½ tsp'},{n:'Green onion',a:'optional'}],
+   steps:['Rice MUST be hot and fresh — the heat slightly cooks the egg.','Crack 2 raw eggs directly into bowl of hot rice.','Add soy sauce and sesame oil immediately.','Stir vigorously until egg coats every grain and turns pale yellow.','Top with sliced green onion. Eat immediately.'],custom:false},
+  {id:'r3',cuisine:'kr',mealType:'lunch',name:'Korean Bulgogi Beef Bowl',sub:'Sweet soy marinated beef over white rice — meal prep friendly',time:25,kcal:580,p:46,c:52,f:16,
+   ingredients:[{n:'Ground beef or thinly sliced beef',a:'200g (7oz)'},{n:'White rice (cooked)',a:'1 cup'},{n:'Soy sauce',a:'3 tbsp'},{n:'Sesame oil',a:'1 tbsp'},{n:'Brown sugar or honey',a:'1 tbsp'},{n:'Garlic (minced)',a:'3 cloves'},{n:'Ginger (grated)',a:'1 tsp'},{n:'Green onion',a:'2 stalks'},{n:'Sesame seeds',a:'1 tsp'}],
+   steps:['Mix soy sauce, sesame oil, sugar, garlic, ginger — your marinade.','Add beef to marinade. Sit 10–15 min or overnight for best flavor.','Cook beef on medium-high 5–7 min until browned through.','Serve over white rice. Top with green onion and sesame seeds.','Optional: add a fried egg on top for extra protein.'],custom:false},
+  {id:'r4',cuisine:'cn',mealType:'lunch',name:'Chinese Chicken Stir-fry & Rice',sub:'Garlic-ginger chicken with broccoli — simple weekday staple',time:20,kcal:520,p:44,c:50,f:12,
+   ingredients:[{n:'Chicken breast or thigh',a:'200g (7oz)'},{n:'Broccoli florets',a:'1 cup'},{n:'White rice (cooked)',a:'1 cup'},{n:'Soy sauce',a:'2 tbsp'},{n:'Oyster sauce',a:'1 tbsp'},{n:'Garlic (minced)',a:'3 cloves'},{n:'Ginger (grated)',a:'1 tsp'},{n:'Sesame oil',a:'1 tsp'},{n:'Cornstarch',a:'1 tsp'}],
+   steps:['Slice chicken thin. Toss with cornstarch, salt, 1 tbsp soy sauce.','Heat wok on high until smoking. Add chicken, cook 4–5 min.','Push chicken aside. Add garlic and ginger, stir 30 seconds.','Add broccoli + 2 tbsp water. Stir-fry 3 min until bright green.','Add oyster sauce, remaining soy sauce, sesame oil. Toss together.','Serve over white rice.'],custom:false},
+  {id:'r5',cuisine:'jp',mealType:'dinner',name:'Japanese Chicken Teriyaki Bowl',sub:'Classic teriyaki — restaurant quality at home',time:25,kcal:560,p:48,c:54,f:12,
+   ingredients:[{n:'Chicken thigh (boneless)',a:'200g (7oz)'},{n:'White rice (cooked)',a:'1 cup'},{n:'Soy sauce',a:'3 tbsp'},{n:'Mirin',a:'2 tbsp'},{n:'Honey or sugar',a:'1 tbsp'},{n:'Garlic (minced)',a:'1 clove'},{n:'Sesame seeds',a:'1 tsp'}],
+   steps:['Mix soy sauce, mirin, honey — your teriyaki sauce.','Score chicken lightly with a knife so sauce penetrates.','Cook chicken skin-side down 5–6 min until golden.','Flip, cook 4 min more. Pour teriyaki sauce, let bubble and thicken 2 min.','Slice chicken, serve over rice. Drizzle sauce, sprinkle sesame seeds.'],custom:false},
+  {id:'r6',cuisine:'kr',mealType:'dinner',name:'Korean Tofu Stir-fry (Dubu Bokkeum)',sub:'Spicy-sweet crispy tofu — great meatless dinner',time:20,kcal:440,p:32,c:42,f:16,
+   ingredients:[{n:'Firm tofu',a:'300g (block)'},{n:'White rice (cooked)',a:'1 cup'},{n:'Soy sauce',a:'2 tbsp'},{n:'Gochujang',a:'1 tbsp'},{n:'Sesame oil',a:'1 tbsp'},{n:'Garlic (minced)',a:'2 cloves'},{n:'Honey',a:'1 tsp'},{n:'Green onion + sesame seeds',a:'to top'}],
+   steps:['Press tofu: wrap in paper towels, heavy pan on top for 10 min.','Cut into cubes. Pan-fry in oil, 3–4 min per side until golden and crispy.','Mix soy sauce, gochujang, sesame oil, garlic, honey into sauce.','Pour sauce over crispy tofu. Toss and cook 2 min until coated.','Serve over rice. Top with green onion and sesame seeds.'],custom:false},
+  {id:'r7',cuisine:'cn',mealType:'dinner',name:'Chinese Pork & Egg Fried Rice',sub:'Use leftover rice — better than restaurant',time:15,kcal:600,p:38,c:62,f:18,
+   ingredients:[{n:'Cold cooked white rice (day-old)',a:'1.5 cups'},{n:'Ground pork',a:'150g (5oz)'},{n:'Eggs',a:'2 large'},{n:'Soy sauce',a:'2 tbsp'},{n:'Oyster sauce',a:'1 tbsp'},{n:'Garlic (minced)',a:'2 cloves'},{n:'Sesame oil',a:'1 tsp'},{n:'Green onion',a:'2 stalks'},{n:'White pepper',a:'pinch'}],
+   steps:['IMPORTANT: rice must be cold and day-old — fresh rice = mushy fried rice.','Cook pork in hot wok until browned. Push to side.','Add garlic, stir 30 sec. Push aside.','Crack eggs in, scramble until just set.','Add cold rice, break clumps, toss everything on high heat.','Add soy sauce, oyster sauce, white pepper, sesame oil. Toss 2 min.','Top with green onion. Serve immediately.'],custom:false},
+  {id:'r8',cuisine:'jp',mealType:'lunch',name:'Chicken Onigiri (Rice Ball)',sub:'Perfect meal prep — make Sunday, eat all week',time:15,kcal:380,p:26,c:52,f:6,
+   ingredients:[{n:'White rice (warm)',a:'2 cups'},{n:'Chicken breast (cooked, shredded)',a:'150g'},{n:'Soy sauce',a:'1 tbsp'},{n:'Sesame oil',a:'1 tsp'},{n:'Nori sheets',a:'2–3 sheets'},{n:'Salt',a:'pinch'}],
+   steps:['Mix shredded chicken with soy sauce and sesame oil.','Wet hands with water, sprinkle salt on palms.','Grab handful of rice, flatten in palm, place chicken in center.','Fold rice around filling, squeeze firmly into triangle shape.','Wrap bottom with nori strip. Repeat with remaining rice.','Store in fridge wrapped in plastic — good for 2 days.'],custom:false},
+  {id:'r9',cuisine:'kr',mealType:'dinner',name:'Korean Ground Beef Rice Bowl',sub:'Fastest high-protein dinner. 15 min start to finish.',time:15,kcal:540,p:42,c:50,f:16,
+   ingredients:[{n:'Ground beef (lean)',a:'200g (7oz)'},{n:'White rice (cooked)',a:'1 cup'},{n:'Soy sauce',a:'3 tbsp'},{n:'Sesame oil',a:'1 tbsp'},{n:'Brown sugar',a:'1 tbsp'},{n:'Garlic (minced)',a:'2 cloves'},{n:'Ginger powder',a:'½ tsp'},{n:'Red pepper flakes',a:'½ tsp'},{n:'Green onion + sesame seeds',a:'to top'}],
+   steps:['Brown ground beef on medium-high, breaking apart as it cooks.','Drain excess fat if needed.','Add garlic, cook 1 min until fragrant.','Add soy sauce, sesame oil, brown sugar, ginger, pepper flakes. Stir to coat.','Cook 2–3 min until sauce caramelizes slightly.','Serve over white rice. Top with green onion and sesame seeds.','Optional: add fried egg for extra protein.'],custom:false},
+  {id:'r10',cuisine:'cn',mealType:'lunch',name:'Chinese Egg Drop Noodle Soup',sub:'Comforting and light — great after a night shift',time:15,kcal:420,p:28,c:48,f:10,
+   ingredients:[{n:'Ramen or rice noodles',a:'100g dry'},{n:'Chicken or veg broth',a:'2 cups'},{n:'Eggs',a:'2 large'},{n:'Soy sauce',a:'1 tbsp'},{n:'Sesame oil',a:'1 tsp'},{n:'Garlic powder',a:'½ tsp'},{n:'Green onion',a:'2 stalks'},{n:'White pepper',a:'pinch'}],
+   steps:['Bring broth to boil. Add soy sauce, garlic powder, white pepper.','Cook noodles in broth per package directions.','Beat eggs. Once boiling, slowly drizzle eggs in while stirring — creates silky ribbons.','Remove from heat immediately after adding eggs.','Drizzle sesame oil. Top with sliced green onion.','Optional: add shredded chicken or tofu for more protein.'],custom:false},
+];
+
+// STATE
+let currentPage='home';
+let currentWorkoutDay=0,currentSchedDay=0,currentMealFilter='All';
+let selectedEventType='event',selectedCuisine='kr',selectedMealType='breakfast';
+let logs=JSON.parse(localStorage.getItem('sg-logs')||'[]');
+let setDone=JSON.parse(localStorage.getItem('sg-setdone')||'{}');
+let userEvents=JSON.parse(localStorage.getItem('sg-events')||'[]');
+let customRecipes=JSON.parse(localStorage.getItem('sg-recipes')||'[]');
+let starredRecipes=JSON.parse(localStorage.getItem('sg-starred')||'[]');
+
+function allRecipes(){return [...builtInRecipes,...customRecipes];}
+function getTodayIdx(){const d=new Date().getDay();return d===0?6:d-1;}
+
+// NAV
+function switchPage(id,btn){
+  currentPage=id;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  const fab=document.getElementById('fab');
+  if(id==='schedule'){fab.classList.remove('hidden');fab.textContent='+';}
+  else if(id==='meal'){fab.classList.remove('hidden');fab.textContent='+';}
+  else{fab.classList.add('hidden');}
+}
+function fabAction(){
+  if(currentPage==='schedule') openModal('modal-event');
+  else if(currentPage==='meal') openModal('modal-recipe');
+}
+
+// HOME
+function renderHome(){
+  const ti=getTodayIdx(),d=new Date();
+  document.getElementById('home-date').textContent=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const strip=document.getElementById('home-week-strip');
+  strip.innerHTML='';
+  const icons={lift:'💪',cardio:'🏃',rest:'😴'};
+  DAYS.forEach((day,i)=>{
+    const w=workouts[i],pill=document.createElement('div');
+    pill.className='week-pill'+(i===ti?' today-pill':'');
+    pill.innerHTML=`<div class="wday">${day}</div><div class="wtype">${icons[w.type]||'😴'}</div>`;
+    strip.appendChild(pill);
+  });
+  const todayDay=DAYS[ti],w=workouts[ti];
+  document.getElementById('today-title').textContent=w.title;
+  document.getElementById('today-day-label').textContent=todayDay+' · '+d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const badge=document.getElementById('today-badge');
+  badge.textContent=w.type;badge.className='badge b-'+w.type;
+  const sched=baseSchedule[todayDay]||[];
+  const evs=userEvents.filter(e=>e.day===todayDay);
+  const all=[...sched,...evs.map(e=>({time:e.start+' – '+e.end,label:e.title,type:e.type,sub:''}))];
+  document.getElementById('today-items').innerHTML=all.map(item=>`<div class="today-item"><div class="today-dot" style="background:${TYPE_COLORS[item.type]||'var(--text3)'}"></div><div class="today-time">${item.time}</div><div><div class="today-label">${item.label}</div>${item.sub?`<div class="today-sub">${item.sub}</div>`:''}</div></div>`).join('');
+  if(logs.length>0){const lat=logs[0].weight,chg=(lat-194).toFixed(1);document.getElementById('hs-weight').textContent=lat;document.getElementById('hs-change').textContent=(chg>0?'+':'')+chg;}
+  document.getElementById('hs-logged').textContent=logs.length;
+}
+
+// SCHEDULE
+function renderSchedTabs(){
+  const tabs=document.getElementById('sched-tabs');tabs.innerHTML='';
+  DAYS.forEach((day,i)=>{const btn=document.createElement('button');btn.className='tab-pill'+(i===currentSchedDay?' active':'');btn.textContent=day;btn.onclick=()=>{currentSchedDay=i;renderSchedTabs();renderSched();};tabs.appendChild(btn);});
+}
+function renderSched(){
+  const day=DAYS[currentSchedDay],base=baseSchedule[day]||[],evs=userEvents.filter(e=>e.day===day);
+  let html='';
+  if(!base.length&&!evs.length){html='<div class="empty-state">Nothing scheduled</div>';}
+  const day2=DAYS[currentSchedDay];
+  base.forEach((item,bi)=>{const col=TYPE_COLORS[item.type]||'var(--text3)';html+=`<div class="event-item"><div class="event-left"><div class="event-time">${item.time}</div><div class="event-bar" style="background:${col}"></div></div><div class="event-content"><div class="event-title">${item.label}</div>${item.sub?`<div class="event-sub">${item.sub}</div>`:''}</div><div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0"><button style="font-size:13px;padding:3px 8px;border:1px solid var(--border2);border-radius:6px;background:none;color:var(--text2);cursor:pointer;font-family:'Outfit',sans-serif;" onclick="openEditBuiltin('${day2}',${bi})">✏️</button></div></div>`;});
+  if(evs.length){html+=`<div style="padding:8px 16px 4px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3)">Your events</div>`;evs.forEach(e=>{const col=TYPE_COLORS[e.type]||'var(--gold)';const gi=userEvents.indexOf(e);html+=`<div class="event-item"><div class="event-left"><div class="event-time">${e.start}</div><div class="event-bar" style="background:${col}"></div></div><div class="event-content"><div class="event-title">${e.title}</div><div class="event-sub">${e.start} – ${e.end}</div></div><div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0"><button class="event-delete" style="font-size:13px;padding:3px 8px;border:1px solid var(--border2);border-radius:6px;background:none;color:var(--text2);cursor:pointer;font-family:'Outfit',sans-serif;" onclick="openEditEvent(${gi})">✏️</button><button class="event-delete" onclick="deleteEvent(${gi})">✕</button></div></div>`;});}
+  document.getElementById('sched-content').innerHTML=html;
+}
+
+// WORKOUT
+function renderWorkoutTabs(){
+  const tabs=document.getElementById('workout-tabs');tabs.innerHTML='';
+  DAYS.forEach((day,i)=>{const btn=document.createElement('button');btn.className='tab-pill'+(i===currentWorkoutDay?' active':'');btn.textContent=day;btn.onclick=()=>{currentWorkoutDay=i;renderWorkoutTabs();renderWorkout();};tabs.appendChild(btn);});
+}
+function renderWorkout(){
+  const w=workouts[currentWorkoutDay],c=document.getElementById('workout-content');
+  let html=`<div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px;margin-bottom:14px"><div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px">${w.title}</div><span class="badge b-${w.type}">${w.type}</span></div>`;
+  if(w.type==='rest'){html+=`<div class="tip-box">🛌 ${w.tip}</div>`;}
+  else{
+    w.exercises.forEach((ex,ei)=>{
+      const sets=Array.from({length:ex.sets},(_,si)=>{const key=`${currentWorkoutDay}-${ei}-${si}`;const done=setDone[key];return `<div class="set-row"><span class="set-num">Set ${si+1}</span><input class="set-input" id="si-${key}" placeholder="${ex.reps}" type="text" value="${localStorage.getItem('sr-'+key)||''}"><span class="set-lbl">reps</span><button class="set-check ${done?'done':''}" onclick="toggleSet('${key}',this)">${done?'✓':''}</button></div>`;}).join('');
+      html+=`<div class="ex-card"><div class="ex-header" onclick="toggleEx(this)"><div><div class="ex-name">${ex.name}</div><div class="ex-meta">${ex.sets} sets · ${ex.reps} · ${ex.note}</div></div><span class="chevron">▾</span></div><div class="ex-body">${sets}<div class="how-to">📖 How to: ${ex.howto}</div></div></div>`;
+    });
+    html+=`<div class="tip-box">💡 ${w.tip}</div>`;
+  }
+  c.innerHTML=html;
+  document.querySelectorAll('.set-input').forEach(inp=>{inp.addEventListener('change',()=>localStorage.setItem('sr-'+inp.id.replace('si-',''),inp.value));});
+}
+function toggleEx(h){const b=h.nextElementSibling,ch=h.querySelector('.chevron');b.classList.toggle('open');ch.classList.toggle('open');}
+function toggleSet(key,btn){setDone[key]=!setDone[key];btn.classList.toggle('done',setDone[key]);btn.textContent=setDone[key]?'✓':'';localStorage.setItem('sg-setdone',JSON.stringify(setDone));}
+
+// MEALS
+const MEAL_FILTERS=['All','Starred ⭐','Breakfast','Lunch','Dinner','Korean','Chinese','Japanese','Quick (≤15 min)','Custom'];
+function renderMealFilterTabs(){
+  const tabs=document.getElementById('meal-filter-tabs');tabs.innerHTML='';
+  MEAL_FILTERS.forEach(f=>{const btn=document.createElement('button');btn.className='tab-pill'+(f===currentMealFilter?' active':'');btn.textContent=f;btn.onclick=()=>{currentMealFilter=f;renderMealFilterTabs();renderRecipes();};tabs.appendChild(btn);});
+}
+function filterRecipes(){
+  let list=allRecipes();
+  if(currentMealFilter==='Starred ⭐') return list.filter(r=>starredRecipes.includes(r.id));
+  if(currentMealFilter==='Breakfast') return list.filter(r=>r.mealType==='breakfast');
+  if(currentMealFilter==='Lunch') return list.filter(r=>r.mealType==='lunch');
+  if(currentMealFilter==='Dinner') return list.filter(r=>r.mealType==='dinner');
+  if(currentMealFilter==='Korean') return list.filter(r=>r.cuisine==='kr');
+  if(currentMealFilter==='Chinese') return list.filter(r=>r.cuisine==='cn');
+  if(currentMealFilter==='Japanese') return list.filter(r=>r.cuisine==='jp');
+  if(currentMealFilter==='Quick (≤15 min)') return list.filter(r=>r.time<=15);
+  if(currentMealFilter==='Custom') return list.filter(r=>r.custom);
+  return list;
+}
+function renderRecipes(){
+  const list=filterRecipes();
+  const c=document.getElementById('recipe-list');
+  if(!list.length){c.innerHTML='<div class="empty-state">No recipes here yet.<br>Tap + to add your own!</div>';return;}
+  c.innerHTML=list.map(r=>{
+    const starred=starredRecipes.includes(r.id);
+    const cuisineLabel=CUISINE_LABELS[r.cuisine]||'Custom';
+    const cuisineClass='c-'+(r.cuisine||'custom');
+    const ings=r.ingredients.map(i=>`<div class="ing-row"><span>${i.n}</span><span class="ing-amt">${i.a}</span></div>`).join('');
+    const steps=r.steps.map((s,si)=>`<div class="step-row"><div class="step-num">${si+1}</div><span>${s}</span></div>`).join('');
+    const deleteBtn=r.custom?`<button class="delete-recipe-btn" onclick="deleteRecipe('${r.id}')">Remove this recipe</button>`:'';
+    return `<div class="recipe-card" id="rc-${r.id}">
+      <div class="recipe-header">
+        <div class="recipe-info">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+            <span class="recipe-name">${r.name}</span>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+            <span class="cuisine-badge ${cuisineClass}">${cuisineLabel}</span>
+            <span style="font-size:11px;color:var(--text3)">⏱ ${r.time} min · ${r.mealType}</span>
+          </div>
+          ${r.sub?`<div style="font-size:12px;color:var(--text2);line-height:1.4;margin-bottom:8px">${r.sub}</div>`:''}
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--bg3);color:var(--text2)">🔥 ${r.kcal} kcal</span>
+            <span style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--bg3);color:var(--text2)">🥩 ${r.p}g protein</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0">
+          <button class="star-btn" onclick="toggleStar('${r.id}',event)" title="${starred?'Unstar':'Star'}">${starred?'⭐':'☆'}</button>
+          <button onclick="toggleRecipe('${r.id}')" style="background:none;border:1px solid var(--border2);border-radius:8px;padding:5px 10px;color:var(--text2);font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;">View</button>
+        </div>
+      </div>
+      <div class="recipe-body" id="rb-${r.id}">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin:12px 0 8px">Ingredients</div>
+        ${ings}
+        <div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin:14px 0 8px">Steps</div>
+        ${steps}
+        ${deleteBtn}
+      </div>
+    </div>`;
+  }).join('');
+}
+function toggleRecipe(id){
+  const body=document.getElementById('rb-'+id);
+  body.classList.toggle('open');
+}
+function toggleStar(id,e){
+  e.stopPropagation();
+  const idx=starredRecipes.indexOf(id);
+  if(idx===-1) starredRecipes.push(id);
+  else starredRecipes.splice(idx,1);
+  localStorage.setItem('sg-starred',JSON.stringify(starredRecipes));
+  renderRecipes();
+}
+function deleteRecipe(id){
+  customRecipes=customRecipes.filter(r=>r.id!==id);
+  starredRecipes=starredRecipes.filter(s=>s!==id);
+  localStorage.setItem('sg-recipes',JSON.stringify(customRecipes));
+  localStorage.setItem('sg-starred',JSON.stringify(starredRecipes));
+  renderRecipes();
+}
+
+// PROGRESS
+function logEntry(){
+  const w=parseFloat(document.getElementById('inp-weight').value),ws=parseFloat(document.getElementById('inp-waist').value);
+  if(!w)return;
+  logs.unshift({date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),weight:w,waist:ws||null});
+  localStorage.setItem('sg-logs',JSON.stringify(logs));
+  document.getElementById('inp-weight').value='';document.getElementById('inp-waist').value='';
+  renderProgress();renderHome();
+}
+function deleteLog(i){logs.splice(i,1);localStorage.setItem('sg-logs',JSON.stringify(logs));renderProgress();renderHome();}
+function renderProgress(){
+  document.getElementById('stat-cnt').textContent=logs.length;
+  if(logs.length>0){const lat=logs[0].weight,chg=(lat-194).toFixed(1);document.getElementById('stat-cur').textContent=lat;document.getElementById('stat-chg').textContent=(chg>0?'+':'')+chg;document.getElementById('stat-chg').style.color=chg<=0?'var(--green)':'var(--accent)';}
+  const list=document.getElementById('log-list');
+  if(!logs.length){list.innerHTML='<div class="empty-state">No entries yet. Log your first weigh-in!</div>';return;}
+  list.innerHTML=logs.map((l,i)=>`<div class="log-item"><div><div class="log-vals">${l.weight} lbs${l.waist?' · '+l.waist+'" waist':''}</div><div class="log-date">${l.date}</div></div><button class="log-del" onclick="deleteLog(${i})">✕</button></div>`).join('');
+}
+
+// MODAL HELPERS
+function openModal(id){document.getElementById(id).classList.remove('hidden');}
+function closeModal(id){document.getElementById(id).classList.add('hidden');}
+function closeModalOutside(e,id){if(e.target===document.getElementById(id))closeModal(id);}
+function selType(btn,val,groupId){
+  document.querySelectorAll(`#${groupId} .type-btn`).forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  if(groupId==='ev-type-btns') selectedEventType=val;
+  else if(groupId==='rc-cuisine-btns') selectedCuisine=val;
+  else if(groupId==='rc-meal-btns') selectedMealType=val;
+}
+
+// EVENTS
+function saveEvent(){
+  const title=document.getElementById('ev-title').value.trim(),day=document.getElementById('ev-day').value,start=document.getElementById('ev-start').value,end=document.getElementById('ev-end').value;
+  if(!title)return;
+  userEvents.push({title,day,start,end,type:selectedEventType});
+  localStorage.setItem('sg-events',JSON.stringify(userEvents));
+  document.getElementById('ev-title').value='';
+  closeModal('modal-event');renderSched();renderHome();
+}
+function deleteEvent(i){userEvents.splice(i,1);localStorage.setItem('sg-events',JSON.stringify(userEvents));renderSched();renderHome();}
+
+let editingEventIdx=-1;
+function openEditEvent(i){
+  editingBuiltin=null;
+  const e=userEvents[i];
+  editingEventIdx=i;
+  document.getElementById('edit-ev-title').value=e.title;
+  document.getElementById('edit-ev-day').value=e.day;
+  document.getElementById('edit-ev-start').value=e.start;
+  document.getElementById('edit-ev-end').value=e.end;
+  // set type buttons
+  document.querySelectorAll('#edit-ev-type-btns .type-btn').forEach(b=>{
+    b.classList.toggle('sel', b.getAttribute('onclick').includes("'"+e.type+"'"));
+  });
+  selectedEventType=e.type;
+  openModal('modal-edit-event');
+}
+function selEditType(btn,type){
+  selectedEventType=type;
+  document.querySelectorAll('#edit-ev-type-btns .type-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+let editingBuiltin=null;
+function saveEditEvent(){
+  if(editingBuiltin){saveEditBuiltin();return;}
+  const title=document.getElementById('edit-ev-title').value.trim();
+  if(!title||editingEventIdx<0)return;
+  userEvents[editingEventIdx]={
+    title,
+    day:document.getElementById('edit-ev-day').value,
+    start:document.getElementById('edit-ev-start').value,
+    end:document.getElementById('edit-ev-end').value,
+    type:selectedEventType,
+  };
+  localStorage.setItem('sg-events',JSON.stringify(userEvents));
+  closeModal('modal-edit-event');
+  renderSched();renderHome();
+}
+
+function openEditBuiltin(day,idx){
+  const item=baseSchedule[day][idx];
+  editingEventIdx=idx;
+  document.getElementById('edit-ev-title').value=item.label;
+  document.getElementById('edit-ev-day').value=day;
+  // for built-in items, time field may be like "4:30–6:00am" not HH:MM
+  // store day+idx so we know it's a built-in edit
+  editingBuiltin={day,idx};
+  // pre-fill time as text in start field (show current time string)
+  document.getElementById('edit-ev-start').value='';
+  document.getElementById('edit-ev-end').value='';
+  // show current time as placeholder hint via sub label
+  document.getElementById('edit-ev-start').placeholder=item.time;
+  document.getElementById('edit-ev-end').placeholder='optional';
+  document.querySelectorAll('#edit-ev-type-btns .type-btn').forEach(b=>{
+    b.classList.toggle('sel', b.getAttribute('onclick').includes("'"+item.type+"'"));
+  });
+  selectedEventType=item.type;
+  openModal('modal-edit-event');
+}
+function saveEditBuiltin(){
+  const b=editingBuiltin;
+  const title=document.getElementById('edit-ev-title').value.trim();
+  const start=document.getElementById('edit-ev-start').value;
+  const end=document.getElementById('edit-ev-end').value;
+  const item=baseSchedule[b.day][b.idx];
+  if(title) item.label=title;
+  if(start&&end) item.time=start+' – '+end;
+  else if(start) item.time=start;
+  item.type=selectedEventType;
+  saveBaseSchedule();
+  editingBuiltin=null;
+  closeModal('modal-edit-event');
+  renderSched();renderHome();
+}
+
+// RECIPE MODAL DYNAMIC ROWS
+function addIngRow(){
+  const div=document.createElement('div');div.className='dyn-row';
+  div.innerHTML=`<input class="form-input" placeholder="Ingredient" type="text"><input class="form-input sm" placeholder="Amount" type="text"><button class="remove-row-btn" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('rc-ings').appendChild(div);
+}
+function addStepRow(){
+  const div=document.createElement('div');div.className='dyn-row';
+  div.innerHTML=`<input class="form-input" placeholder="Step description" type="text"><button class="remove-row-btn" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('rc-steps').appendChild(div);
+}
+function saveRecipe(){
+  const name=document.getElementById('rc-name').value.trim();
+  if(!name)return;
+  const ings=Array.from(document.querySelectorAll('#rc-ings .dyn-row')).map(row=>{const ins=row.querySelectorAll('input');return{n:ins[0].value.trim(),a:ins[1].value.trim()};}).filter(i=>i.n);
+  const steps=Array.from(document.querySelectorAll('#rc-steps .dyn-row')).map(row=>row.querySelector('input').value.trim()).filter(Boolean);
+  const recipe={
+    id:'rc-'+Date.now(),
+    custom:true,
+    cuisine:selectedCuisine,
+    mealType:selectedMealType,
+    name,
+    sub:document.getElementById('rc-sub').value.trim(),
+    time:parseInt(document.getElementById('rc-time').value)||20,
+    kcal:parseInt(document.getElementById('rc-kcal').value)||0,
+    p:parseInt(document.getElementById('rc-prot').value)||0,
+    c:0,f:0,
+    ingredients:ings,
+    steps,
+  };
+  customRecipes.push(recipe);
+  localStorage.setItem('sg-recipes',JSON.stringify(customRecipes));
+  // reset form
+  document.getElementById('rc-name').value='';document.getElementById('rc-sub').value='';
+  document.getElementById('rc-kcal').value='';document.getElementById('rc-prot').value='';
+  document.getElementById('rc-time').value='';
+  document.getElementById('rc-ings').innerHTML='';document.getElementById('rc-steps').innerHTML='';
+  closeModal('modal-recipe');
+  currentMealFilter='Custom';renderMealFilterTabs();renderRecipes();
+}
+
+// INIT
+const ti=getTodayIdx();
+currentSchedDay=ti;currentWorkoutDay=ti;
+// seed ingredient/step rows
+addIngRow();addIngRow();addStepRow();addStepRow();
+renderHome();
+renderSchedTabs();renderSched();
+renderWorkoutTabs();renderWorkout();
+renderMealFilterTabs();renderRecipes();
+renderProgress();
+</script>
+</body>
+</html>
